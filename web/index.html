@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upper Assam Flood Map</title>
+<meta name="description" content="The July 2026 flood in Sivasagar, Jorhat and Charaideo, mapped with NISAR L-band radar.">
+<meta name="theme-color" content="#0b1426">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23256abf'/%3E%3Cpath d='M4 20c4-4 8 4 12 0s8 4 12 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <span class="brand" data-i18n="brand"></span>
+    <div class="lang" role="group" data-i18n-aria="lang.label">
+      <button class="seg" data-lang="en" aria-pressed="true">EN</button>
+      <button class="seg" data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button>
+    </div>
+  </div>
+</header>
+
+<div id="placeholder-banner" class="banner" hidden>Placeholder data: these numbers come from synthetic test files, not from NISAR.</div>
+
+<!-- 1. hero -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="kicker" data-i18n="hero.kicker"></p>
+    <h1 data-i18n="hero.title"></h1>
+    <p class="lede" id="hero-lede"></p>
+    <div class="stats" id="stats"></div>
+    <p class="range-note" id="range-note"></p>
+  </div>
+</section>
+
+<main>
+  <!-- 2. clouds vs radar -->
+  <section class="wrap" id="clouds">
+    <h2 data-i18n="clouds.title"></h2>
+    <p class="prose" id="clouds-p"></p>
+    <div class="swipe" id="swipe">
+      <img class="swipe-base" id="swipe-radar" alt="">
+      <img class="swipe-top" id="swipe-optical" alt="">
+      <span class="swipe-tag l" data-i18n="clouds.left"></span>
+      <span class="swipe-tag r" data-i18n="clouds.right"></span>
+      <div class="swipe-line" aria-hidden="true"><span class="swipe-knob">◀ ▶</span></div>
+      <input type="range" id="swipe-range" min="0" max="100" value="50" step="0.5" data-i18n-aria="clouds.aria">
+    </div>
+    <p class="caption" id="clouds-caption"></p>
+  </section>
+
+  <!-- 3. the map -->
+  <section class="band" id="map-section">
+    <div class="wrap">
+      <h2 data-i18n="map.title"></h2>
+      <p class="prose" data-i18n="map.intro"></p>
+
+      <div class="segs modes" role="group">
+        <button class="seg" data-mode="story" aria-pressed="true" data-i18n="mode.story"></button>
+        <button class="seg" data-mode="explore" aria-pressed="false" data-i18n="mode.explore"></button>
+      </div>
+
+      <div class="map-layout">
+        <div class="side">
+          <div class="panel" id="story-panel" aria-live="polite">
+            <p class="step-count" id="story-count"></p>
+            <div class="dots" id="story-dots" aria-hidden="true"></div>
+            <h3 id="story-title"></h3>
+            <p id="story-text"></p>
+            <div class="row">
+              <button class="btn ghost" id="story-back" data-i18n="btn.back"></button>
+              <button class="btn" id="story-next"></button>
+            </div>
+          </div>
+
+          <div class="panel" id="explore-panel" hidden>
+            <div class="field">
+              <span class="field-label" data-i18n="ex.date"></span>
+              <div class="segs" id="date-tabs" role="group"></div>
+            </div>
+            <div class="field">
+              <span class="field-label" data-i18n="ex.layers"></span>
+              <div class="checks" id="layer-checks"></div>
+            </div>
+            <div class="field" id="search-field">
+              <label class="field-label" for="search" data-i18n="search.label"></label>
+              <input type="search" id="search" autocomplete="off" data-i18n-ph="search.ph">
+              <div class="results" id="search-results" aria-live="polite"></div>
+            </div>
+            <p class="hint" data-i18n="ex.hint"></p>
+          </div>
+        </div>
+
+        <div class="map-col">
+          <div id="map"></div>
+          <div class="legend" id="legend" data-i18n-aria="legend.title">
+            <span class="lg"><span class="sw permanent"></span><span data-i18n="cls.permanent"></span></span>
+            <span class="lg"><span class="sw flooded_persisting"></span><span data-i18n="cls.flooded_persisting"></span></span>
+            <span class="lg"><span class="sw flooded_receded"></span><span data-i18n="cls.flooded_receded"></span></span>
+            <span class="lg"><span class="sw flooded_vegetation"></span><span data-i18n="cls.flooded_vegetation"></span></span>
+            <span class="lg"><span class="sw water"></span><span data-i18n="legend.water"></span></span>
+            <span class="lg wide"><span class="ramp"></span><span data-i18n="legend.radar"></span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. be the scientist -->
+  <section class="wrap" id="scientist">
+    <h2 data-i18n="sci.title"></h2>
+    <p class="prose" data-i18n="sci.p"></p>
+    <div class="card">
+      <div class="sci-controls">
+        <label class="field-inline"><span data-i18n="sci.date"></span> <select id="sci-date"></select></label>
+        <label class="sci-slider"><span><span data-i18n="sci.slider"></span> <strong id="sci-val"></strong></span>
+          <input type="range" id="sci-thr" min="-25" max="-5" step="0.1"></label>
+      </div>
+      <div class="segs presets" id="sci-presets" role="group" data-i18n-aria="sci.presets"></div>
+      <div class="sci-body">
+        <div id="sci-map"></div>
+        <div class="sci-side">
+          <div class="readout" aria-live="polite">
+            <div class="label"><span class="sw water"></span><span data-i18n="sci.readout"></span></div>
+            <div class="value" id="sci-area"></div>
+            <div class="sub" id="sci-share"></div>
+          </div>
+          <figure class="plain">
+            <figcaption class="chart-title" data-i18n="sci.hist"></figcaption>
+            <div id="sci-hist" class="chart"></div>
+          </figure>
+        </div>
+      </div>
+      <p class="explain" id="sci-explain" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- 5. how radar sees water -->
+  <section class="wrap" id="radar">
+    <h2 data-i18n="rad.title"></h2>
+    <p class="prose" data-i18n="rad.p"></p>
+    <div class="cards3">
+      <figure class="card">
+        <svg viewBox="0 0 220 120" aria-hidden="true">
+          <path d="M20 20 L110 95" class="ray"/><path d="M110 95 L30 30" class="ray back"/>
+          <path d="M60 100 l10 -8 l10 8 l10 -10 l10 10 l10 -7 l10 7 l10 -9 l10 9 l10 -8 l10 8" class="ground"/>
+          <circle cx="18" cy="18" r="6" class="sat"/>
+        </svg>
+        <figcaption><strong data-i18n="rad.c1.t"></strong><span data-i18n="rad.c1.p"></span></figcaption>
+      </figure>
+      <figure class="card">
+        <svg viewBox="0 0 220 120" aria-hidden="true">
+          <path d="M20 20 L110 95" class="ray"/><path d="M110 95 L200 20" class="ray away"/>
+          <path d="M40 100 H200" class="water"/>
+          <circle cx="18" cy="18" r="6" class="sat"/>
+        </svg>
+        <figcaption><strong data-i18n="rad.c2.t"></strong><span data-i18n="rad.c2.p"></span></figcaption>
+      </figure>
+      <figure class="card">
+        <svg viewBox="0 0 220 120" aria-hidden="true">
+          <path d="M20 20 L120 95" class="ray"/><path d="M120 95 L140 80" class="ray back"/><path d="M140 80 L26 24" class="ray back"/>
+          <path d="M40 100 H200" class="water"/><path d="M140 100 V55" class="trunk"/><circle cx="140" cy="50" r="12" class="crown"/>
+          <circle cx="18" cy="18" r="6" class="sat"/>
+        </svg>
+        <figcaption><strong data-i18n="rad.c3.t"></strong><span data-i18n="rad.c3.p"></span></figcaption>
+      </figure>
+    </div>
+    <p class="prose" data-i18n="rad.end"></p>
+  </section>
+
+  <!-- 6. why it flooded -->
+  <section class="band" id="why">
+    <div class="wrap">
+      <h2 data-i18n="why.title"></h2>
+      <p class="prose" data-i18n="why.p1"></p>
+      <ol class="prose">
+        <li data-i18n="why.l1"></li>
+        <li data-i18n="why.l2"></li>
+        <li data-i18n="why.l3"></li>
+      </ol>
+      <figure class="card" id="rain-card">
+        <figcaption class="chart-title" data-i18n="rain.title"></figcaption>
+        <div id="rain-chart" class="chart"></div>
+        <p class="caption" id="rain-caption"></p>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 7. results -->
+  <section class="wrap" id="results">
+    <h2 data-i18n="res.title"></h2>
+    <p class="prose" data-i18n="res.p"></p>
+    <div class="segs" id="res-toggle" role="group" data-i18n-aria="res.toggle"></div>
+    <div class="table-wrap" id="res-table"></div>
+
+    <h3 data-i18n="check.title"></h3>
+    <p class="prose" data-i18n="check.p"></p>
+    <ul class="checklist" id="checklist"></ul>
+  </section>
+
+  <!-- 8. notes, sources, team, code -->
+  <section class="band" id="notes">
+    <div class="wrap">
+      <h2 data-i18n="notes.title"></h2>
+      <p class="prose" data-i18n="notes.prov"></p>
+      <ul class="prose" id="notes-list"></ul>
+      <div class="table-wrap" id="scene-table"></div>
+
+      <div class="cols">
+        <div>
+          <h3 data-i18n="src.title"></h3>
+          <ul class="plain-list">
+            <li data-i18n="src.1"></li><li data-i18n="src.2"></li><li data-i18n="src.3"></li>
+            <li data-i18n="src.4"></li><li data-i18n="src.5"></li><li data-i18n="src.6"></li>
+          </ul>
+        </div>
+        <div>
+          <h3 data-i18n="team.title"></h3>
+          <div id="team"></div>
+          <h3 data-i18n="gh.title"></h3>
+          <div id="github"></div>
+        </div>
+      </div>
+      <p class="muted" id="generated"></p>
+    </div>
+  </section>
+</main>
+
+<div id="tooltip" class="tooltip" role="status" hidden></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>window.L || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"><\/script>')</script>
+<script src="data/site_data.js"></script>
+<script src="data/db_grids.js"></script>
+<script src="data/status_grid.js"></script>
+<script src="data/optical.js"></script>
+<script src="data/rainfall.js"></script>
+<script src="data/places.js"></script>
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

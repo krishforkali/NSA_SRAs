@@ -1,0 +1,68 @@
+# Upper Assam flood website
+
+Open `index.html` in a browser (double-click). No server needed.
+Background map tiles need an internet connection; everything else is local.
+
+Handy links: `index.html?lang=hi` (Hindi), `?mode=explore`, `?step=4` (story step),
+`?at=26.94,94.58` (open the popup at a place).
+
+## Things to fill in
+
+Edit `js/config.js`: team names, GitHub link, the "Strict" slider preset, story zoom spots.
+Until then the Team and Code boxes show a "to be added" note.
+
+## Updating the data
+
+Run from the repository root (the folder that contains `scripts/` and `web/`):
+
+```
+python -P scripts/flood_map.py ^
+  --pre  D:/sar-dance/data/NISAR_L2_PR_GCOV_023_163_D_075_4005_DHDH_A_20260625T122531_20260625T122606_P05023_N_F_J_001.h5 ^
+  --peak D:/sar-dance/data/NISAR_L2_PR_GCOV_025_163_D_075_4005_DHDH_A_20260719T122530_20260719T122604_P05023_N_F_J_001.h5 ^
+  --post D:/sar-dance/data/NISAR_L2_PR_GCOV_029_163_D_075_4005_DHDH_A_20260905T122527_20260905T122602_P05023_N_F_J_002.h5 ^
+  --districts boundaries/upper_assam_districts.geojson ^
+  --threshold -15 --conservative-threshold -17 ^
+  --out D:/sar-dance/output ^
+  --web D:/sar-dance/web/data
+
+python -P scripts/fetch_ancillary.py D:/sar-dance/web/data            (all extras)
+python -P scripts/fetch_ancillary.py D:/sar-dance/web/data rain       (just one: rain | optical | places | rivers)
+```
+
+Add `--rivers boundaries/rivers.geojson` to `flood_map.py` once `fetch_ancillary.py rivers`
+has succeeded; the map then gets a Rivers layer.
+
+The automatic (Otsu) threshold is not used: on these scenes it lands near -10 dB, between
+rough land and wet paddy fields. -15 dB is the main estimate and -17 dB the careful one.
+
+## Data contract (fixed names in `data/`)
+
+Written by `flood_map.py --web`:
+
+| File | Content |
+|---|---|
+| `site_data.js` / `data.json` | `window.FLOOD_DATA = {meta, stats, districts, rivers}`; `stats.conservative` holds the careful-setting numbers |
+| `backscatter_{before,peak,after}.png` | HH backscatter, grey (-25 to 0 dB), Web Mercator |
+| `water_{before,peak,after}.png` | water per date, main threshold |
+| `flood_classes.png`, `flood_classes_careful.png` | 1 water before+peak, 2 new flood drained, 3 new flood still wet, 4 possibly flooded plants (hatched) |
+| `status_grid.js` | `window.FLOOD_STATUS`: per-pixel status for the click popup (PNG data URL: R = valid + water bits for 3 dates x 2 thresholds, G = main class, B = careful class) |
+| `db_grids.js` | `window.FLOOD_GRIDS`: 200 m dB grids per date for the "Be the scientist" slider |
+
+Written by `fetch_ancillary.py` (each is optional; the page shows a labelled empty slot without it):
+
+| File | Content |
+|---|---|
+| `optical_peak.jpg`, `optical.js` | MODIS true-colour photo for the peak date (clouds-vs-radar swipe) |
+| `rainfall.js` | `window.RAINFALL_DATA = {place, source, days[], mm[]}` (rainfall chart) |
+| `places.js` | `window.PLACES = [[name, lat, lon], ...]` (village search) |
+
+All images share `meta.bounds` (`[[south, west], [north, east]]`).
+
+## Files
+
+- `index.html`: the eight sections
+- `css/style.css`: dark navy theme; all controls are at least 44 px tall
+- `js/i18n.js`: every piece of text, in English and Hindi
+- `js/config.js`: team, GitHub link, presets
+- `js/app.js`: language switch, swipe, map (story + explore), popup, search, slider, charts, tables
+- `vendor/leaflet/`: local copy of Leaflet 1.9.4

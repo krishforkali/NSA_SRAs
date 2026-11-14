@@ -1,0 +1,13 @@
+# large or downloaded data (not for git)
+/data/
+/output/
+/ancillary/
+boundaries/IND_ADM2.geojson
+boundaries/meta.json
+*.h5
+*.part
+*.log
+download_log.txt
+__pycache__/
+.netrc
+_netrc

@@ -1,0 +1,1 @@
+window.OPTICAL = {"date": "2026-07-19", "sensor": "MODIS on NASA's Aqua satellite", "source": "NASA GIBS / Worldview"};
