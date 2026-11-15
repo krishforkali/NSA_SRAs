@@ -169,7 +169,7 @@
     };
     fit();
     const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/";
-    const baseDark = L.tileLayer(esri + "Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    const baseDark = L.tileLayer(esri + "Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 16, attribution: "Basemap &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(map);
     const baseSat = L.tileLayer(esri + "World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 17, attribution: "Imagery &copy; Esri" });
     L.control.scale({ imperial: false }).addTo(map);
@@ -182,7 +182,7 @@
     const wat = Object.fromEntries(PHASES.map(p => [p, img(`water_${p}`, "water")]));
     const clsMain = img("flood_classes", "cls");
     const clsCare = CS ? img("flood_classes_careful", "cls") : clsMain;
-    const halo = L.geoJSON(D.districts, { pane: "lines", interactive: false, style: { color: "#060c18", weight: 5, opacity: 0.6, fill: false } });
+    const halo = L.geoJSON(D.districts, { pane: "lines", interactive: false, style: { color: "#111827", weight: 4, opacity: 0.35, fill: false } });
     const dist = L.geoJSON(D.districts, { pane: "lines", interactive: false, style: { color: "#ffffff", weight: 1.8, opacity: 0.95, fill: false },
       onEachFeature: (f, l) => l.bindTooltip("", { permanent: true, direction: "center", className: "district-label" }) });
     const rivers = D.rivers ? L.geoJSON(D.rivers, { pane: "lines", style: { color: "#9fd0ff", weight: 2.2, opacity: 0.95 },
@@ -377,7 +377,7 @@
     const z = map.getBoundsZoom(DB, false, L.point(10, 10));
     map.options.zoomSnap = 1;
     map.setView(DB.getCenter(), Math.round(z - 0.15));
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 16, attribution: "Basemap &copy; Esri" }).addTo(map);
     const B = L.latLngBounds(M.bounds);
     const bsLayer = L.imageOverlay(`data/backscatter_${date}.png${bust}`, B, { interactive: false }).addTo(map);
@@ -426,7 +426,7 @@
         const o = y * W; let n = 0;
         for (let x = 0; x < W; x++) {
           const i = o + x, c = g[i], j = i * 4;
-          if (c && dbLUT[c] < thr) { px[j] = 57; px[j + 1] = 135; px[j + 2] = 229; px[j + 3] = 235; n++; }
+          if (c && dbLUT[c] < thr) { px[j] = 42; px[j + 1] = 120; px[j + 2] = 214; px[j + 3] = 225; n++; }
           else px[j + 3] = 0;
         }
         area += n * rowA[y];
@@ -544,6 +544,11 @@
     $("#generated").textContent = t("generated", { when: M.generated_utc.replace("T", " ").replace("Z", " UTC") });
   });
 
+  // sections fade up as they scroll into view
+  if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 });
+    $$("main > section").forEach(s => { s.classList.add("reveal"); io.observe(s); });
+  }
   applyLang();
   let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { drawRain(); sciRedraw(); }, 150); });
 })();

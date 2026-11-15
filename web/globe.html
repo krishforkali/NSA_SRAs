@@ -19,6 +19,16 @@
   <div class="g-titles">
     <h1 data-i18n="g.title"></h1>
     <p data-i18n="g.sub"></p>
+    <!-- data credits. Official logos are trademarks: drop permitted files into assets/logos/
+         (nasa.png, isro.png, nisar.png) and they replace the text marks automatically. -->
+    <div class="credits" aria-label="Data from">
+      <span class="cr-l" data-i18n="g.datafrom"></span>
+      <span class="mark"><img src="assets/logos/nasa.png" alt="NASA" onerror="this.remove()"><b>NASA</b></span>
+      <span class="mark"><img src="assets/logos/isro.png" alt="ISRO" onerror="this.remove()"><b>ISRO</b></span>
+      <span class="mark nisar"><img src="assets/logos/nisar.png" alt="NISAR" onerror="this.remove()">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M5 12a7 7 0 0 1 7-7M2 12A10 10 0 0 1 12 2M19 12a7 7 0 0 1-7 7M22 12a10 10 0 0 1-10 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><b>NISAR</b></span>
+      <span class="mark"><b>ASF DAAC</b></span>
+    </div>
   </div>
   <div class="g-right">
     <a class="g-btn ghost small" href="index.html" data-i18n="g.learn"></a>
@@ -132,6 +142,25 @@
   </div>
 </section>
 
+<!-- small flood helper chat (answers from the site's own data; no server) -->
+<button class="chat-launch" id="chat-launch" aria-expanded="false" aria-controls="chat">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1.2" fill="currentColor"/><circle cx="12" cy="10.5" r="1.2" fill="currentColor"/><circle cx="15" cy="10.5" r="1.2" fill="currentColor"/></svg>
+  <span id="chat-launch-t"></span>
+</button>
+<section class="chat" id="chat" role="dialog" aria-labelledby="chat-title" hidden>
+  <header class="chat-head">
+    <span class="chat-dot" aria-hidden="true"></span>
+    <h2 id="chat-title"></h2>
+    <button class="chat-x" id="chat-close">×</button>
+  </header>
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+  <div class="chat-chips" id="chat-chips"></div>
+  <form class="chat-form" id="chat-form" autocomplete="off">
+    <input id="chat-input" type="text" maxlength="200">
+    <button id="chat-send" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20l18-8L3 4l2 8-2 8zM5 12h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+  </form>
+</section>
+
 <div class="g-loading" id="loading" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span data-i18n="g.loading"></span></div>
 <div class="g-fatal" id="fatal" hidden></div>
 
@@ -143,8 +172,11 @@
 <script src="data/db_grids.js"></script>
 <script src="data/optical.js"></script>
 <script src="data/rainfall.js"></script>
+<script src="js/config.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/i18n-globe.js"></script>
+<script src="js/report-tools.js"></script>
 <script src="js/globe.js"></script>
+<script src="js/chat.js"></script>
 </body>
 </html>

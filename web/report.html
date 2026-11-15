@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flood analysis report</title>
+<meta name="description" content="Printable analysis report of the July 2026 Upper Assam flood mapped with NISAR radar.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f2937'/%3E%3Cpath d='M4 20c4-4 8 4 12 0s8 4 12 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/report.css">
+</head>
+<body>
+<nav class="bar" aria-label="Report actions">
+  <a class="btn ghost" href="globe.html" data-i18n="r.back"></a>
+  <span class="gap"></span>
+  <div class="lang" role="group" data-i18n-aria="lang.label">
+    <button data-lang="en" aria-pressed="true">EN</button>
+    <button data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button>
+  </div>
+  <button class="btn ghost" id="b-csv" data-i18n="r.csv"></button>
+  <button class="btn ghost" id="b-share" data-i18n="r.share"></button>
+  <button class="btn" id="b-print" data-i18n="r.print"></button>
+</nav>
+<p class="tip" data-i18n="r.tip"></p>
+<div class="share-menu" id="share-menu" hidden></div>
+
+<main class="page" id="report">
+  <header class="r-head">
+    <div>
+      <p class="kicker" data-i18n="r.kicker"></p>
+      <h1 data-i18n="r.title"></h1>
+      <p class="sub" data-i18n="r.sub"></p>
+    </div>
+    <div class="badge" data-i18n="r.provisional"></div>
+  </header>
+  <p class="meta" id="r-meta"></p>
+
+  <section class="stats" id="r-stats"></section>
+
+  <section class="two">
+    <figure class="fig">
+      <figcaption class="fig-t" id="r-map-t"></figcaption>
+      <div class="mapfig" id="r-map"></div>
+      <div class="legend" id="r-legend"></div>
+      <p class="cap" id="r-map-cap"></p>
+    </figure>
+    <figure class="fig">
+      <figcaption class="fig-t" data-i18n="r.bars"></figcaption>
+      <div id="r-bars"></div>
+      <p class="cap" id="r-bars-cap"></p>
+      <figcaption class="fig-t" data-i18n="r.rain" style="margin-top:14px"></figcaption>
+      <div id="r-rain"></div>
+      <p class="cap" id="r-rain-cap"></p>
+    </figure>
+  </section>
+
+  <section>
+    <h2 data-i18n="r.districts"></h2>
+    <div id="r-table"></div>
+  </section>
+
+  <section class="two keep">
+    <div>
+      <h2 data-i18n="r.method"></h2>
+      <ul class="list" id="r-method"></ul>
+    </div>
+    <div>
+      <h2 data-i18n="check.title"></h2>
+      <ul class="checks" id="r-checks"></ul>
+    </div>
+  </section>
+
+  <section class="keep">
+    <h2 data-i18n="r.scenes"></h2>
+    <div id="r-scenes"></div>
+    <h2 data-i18n="src.title"></h2>
+    <ul class="list small" id="r-sources"></ul>
+  </section>
+  <footer class="r-foot" id="r-foot"></footer>
+</main>
+
+<script src="data/site_data.js"></script>
+<script src="data/rainfall.js"></script>
+<script src="data/optical.js"></script>
+<script src="js/config.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/i18n-globe.js"></script>
+<script src="js/report-tools.js"></script>
+<script src="js/report.js"></script>
+</body>
+</html>

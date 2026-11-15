@@ -9,6 +9,21 @@ Globe test links: `globe.html?noauto` (no auto-start), `?view=assam`, `?panel=st
 browsers hold back its sound until you press Play), `?debug=1` (logs camera and tour events to the console;
 with `&missingclip=N` it pretends clip N is missing, to test the fallback).
 
+## Report (download and share)
+
+The tour's last stop offers four options:
+
+- **Report:** opens `report.html?print=1`, a printable A4 analysis (3 pages, English or Hindi),
+  then the print dialog; choose "Save as PDF". `report.html` can also be opened on its own.
+- **Data:** `upper-assam-flood-2026-<lang>.csv`, one row per district and setting.
+- **Map image:** a PNG of the current map view with a title band, legend and credit.
+- **Share:** the device's share sheet (with the PNG attached where the browser allows it), otherwise
+  copy text, WhatsApp, email or X. The shared link is the page itself when it is online, otherwise
+  the GitHub repository (from `js/config.js`).
+
+Everything is built in the browser from the files in `data/`, so it also works offline
+(`js/report-tools.js`, `js/report.js`, `css/report.css`).
+
 ## Guided tour
 
 "▶ Watch the story" (globe screen or the story panel) starts a six-stop narrated tour.

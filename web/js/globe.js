@@ -69,7 +69,15 @@
   const [[bS, bW], [bN, bE]] = M.bounds;
   const corners = [[bW, bN], [bE, bN], [bE, bS], [bW, bS]];
   const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
-  const globeZoom = () => Math.max(0.4, Math.log2(0.8 * Math.min(innerWidth, innerHeight) * Math.PI / 512));
+  // whole-globe framing: the disk sits between the title (top) and the start buttons (bottom).
+  // On the globe a 512-px world is 512*2^z px round, so its diameter is 512*2^z/pi.
+  const GLOBE_LAT = 14;
+  function globeView() {
+    const d = Math.min(innerWidth * 0.86, Math.max(220, innerHeight - 250));
+    return { zoom: Math.max(0.3, Math.log2(d * Math.PI / 512) - 0.1), pitch: 0, bearing: 0,
+             padding: { top: 96, bottom: 140, left: 0, right: 0 } };
+  }
+  const globeZoom = () => globeView().zoom;
   const OVER = Object.keys(GL.layers);       // radar_*, water_*, classes, classes_careful
   const sources = {
     sat: { type: "raster", tiles: [ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 18,
@@ -94,7 +102,7 @@
     paint: { "line-color": "#9fd0ff", "line-width": 2, "line-opacity": 0, "line-opacity-transition": fade(600) } });
   layers.push({ id: "ref", type: "raster", source: "ref", paint: { "raster-opacity": 0.9 } });
 
-  const start = { center: [62, 18], zoom: globeZoom() };
+  const start = { center: [70, GLOBE_LAT], zoom: globeZoom() };
   let map;
   try {
     map = new maplibregl.Map({
@@ -318,14 +326,24 @@
     const pad = mobile ? { top: 90, bottom: 110, left: 20, right: 20 } : { top: 110, bottom: 120, left: 80, right: 80 };
     return { center: DB.getCenter(), zoom: fitZoom(pad) - 0.25, pitch: 40, bearing: -12 };
   }
+  // the fly-in lands close over Sivasagar town: the Dikhow, Sivasagar tank and Joysagar in view
+  const ARRIVE = { center: [94.636, 26.968], zoom: 13.2, pitch: 55, bearing: -12 };
+  // no dragging or scrolling while a flight runs: an interrupted flight used to "arrive" halfway
+  const HANDLERS = ["dragPan", "scrollZoom", "boxZoom", "dragRotate", "keyboard", "doubleClickZoom", "touchZoomRotate"];
+  const lockMap = on => HANDLERS.forEach(h => { if (map[h]) on ? map[h].disable() : map[h].enable(); });
   function flyIn(instant) {
     if (screen !== "globe") return;
-    stopAuto(); spin(false); clearTimeout(resumeT);
+    stopAuto(); spin(false); clearTimeout(resumeT); soonPop.remove();
     screen = "flying"; document.body.classList.remove("screen-globe");
-    const cam = assamCamera();
+    const cam = Object.assign({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }, ARRIVE);
     if (reduce || instant) { map.jumpTo(cam); arrive(); return; }
-    map.flyTo(Object.assign({ duration: 7000, curve: 1.5, essential: true }, cam));
-    map.once("moveend", arrive);
+    lockMap(true);
+    map.flyTo(Object.assign({ duration: 8000, curve: 1.6, essential: true }, cam));
+    map.once("moveend", () => {
+      lockMap(false);
+      if (map.getZoom() < ARRIVE.zoom - 1) map.jumpTo(cam);   // safety: finish an interrupted flight
+      arrive();
+    });
   }
   function arrive() {
     screen = "assam"; setBody();
@@ -347,6 +365,7 @@
       b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1;
       $("#s-" + n).hidden = !on;
     });
+    if (k === "numbers") countUp($("#stats"));
   }
   $$(".p-tabs button").forEach((b, i, all) => {
     b.addEventListener("click", () => setTab(b.id.slice(2)));
@@ -398,7 +417,7 @@
     document.documentElement.style.setProperty("--sheet-h", h + "px");
   }
   if (window.ResizeObserver) new ResizeObserver(sheetSize).observe(panel);
-  addEventListener("resize", () => { sheetSize(); if (screen === "globe") map.jumpTo({ zoom: globeZoom() }); });
+  addEventListener("resize", () => { sheetSize(); if (screen === "globe") map.jumpTo(globeView()); });
 
   /* ---- tab 1: date switch + play */
   function dateButtons(el) {
@@ -449,16 +468,32 @@
     const cw = CS ? CS.total.water_km2 : W;
     $("#stats").innerHTML = `
       <div class="stat"><div class="label"><span class="sw water"></span>${esc(t("g.n.water"))}</div>
-        <div class="value">${nf(W.before)} → ${nf(W.peak)} <span class="unit">${t("unit.km2")}</span></div>
+        <div class="value">${cnt(W.before)} → ${cnt(W.peak)} <span class="unit">${t("unit.km2")}</span></div>
         <div class="sub">${esc(t("g.n.water.sub", { before: short(M.dates.before), peak: short(M.dates.peak), lo1: nf(cw.before), lo2: nf(cw.peak) }))}</div></div>
       <div class="stat"><div class="label"><span class="sw flooded_receded"></span>${esc(t("g.n.new"))}</div>
-        <div class="value">${rangeTxt(nr)} <span class="unit">${t("unit.km2")}</span></div>
+        <div class="value">${cntRange(nr)} <span class="unit">${t("unit.km2")}</span></div>
         <div class="sub">${esc(t("g.n.new.sub", { f1: fields(nr[0]), f2: fields(nr[1]) }))}</div>
         <div class="note">${esc(t("g.n.new.note"))}</div></div>
       <div class="stat"><div class="label"><span class="sw flooded_persisting"></span>${esc(t("g.n.wet", v))}</div>
-        <div class="value">${rangeTxt(wr)} <span class="unit">${t("unit.km2")}</span></div>
+        <div class="value">${cntRange(wr)} <span class="unit">${t("unit.km2")}</span></div>
         <div class="sub">${esc(t("g.n.wet.sub"))}</div></div>`;
+    if (tab === "numbers" && !panel.hidden) countUp($("#stats"));
   });
+  // numbers count up from zero when they appear (skipped for reduced motion)
+  const cnt = (v, d = 0) => `<span class="cnt" data-to="${v}" data-d="${d}">${nf(v, d)}</span>`;
+  const cntRange = ([lo, hi]) => Math.round(lo) === Math.round(hi) ? cnt(hi) : `${cnt(lo)}–${cnt(hi)}`;
+  function countUp(root) {
+    if (reduce || !root) return;
+    $$(".cnt", root).forEach(el => {
+      const to = +el.dataset.to, d = +el.dataset.d || 0, t0 = performance.now(), dur = 1200;
+      const tick = now => {
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = nf(to * e, d);
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      el.textContent = nf(0, d); requestAnimationFrame(tick);
+    });
+  }
 
   /* ---------------------------------------------------------------- explore mode */
   function enterExplore() {
@@ -574,7 +609,7 @@
   }
   function camFor(name, card) {
     const pad = tourPad(card), zero = { top: 0, right: 0, bottom: 0, left: 0 };
-    if (name === "globe") return { center: [PIN_AT[0] - 25, 18], zoom: globeZoom(), pitch: 0, bearing: 0, padding: zero };
+    if (name === "globe") return Object.assign(globeView(), { center: [PIN_AT[0] - 25, GLOBE_LAT] });
     if (name === "districts")            // the three districts fill ~70% of the screen
       return { center: DB.getCenter(), zoom: fitZoom(pad, 45), pitch: 45, bearing: -10, padding: pad };
     if (name === "hills") return { center: [94.88, 26.62], zoom: 9.4, pitch: 65, bearing: 150, padding: pad };
@@ -615,7 +650,7 @@
   }
   function bigCard() {
     const nr = range(newly), fields = km2 => nf(Math.floor(km2 * 1e6 / PITCH_M2 / 1000) * 1000);
-    return `<div class="tour-big"><b>${rangeTxt(nr)}<span class="u">${t("unit.km2")}</span></b><span class="w">${esc(t("tour.big"))}</span>` +
+    return `<div class="tour-big"><b>${cntRange(nr)}<span class="u">${t("unit.km2")}</span></b><span class="w">${esc(t("tour.big"))}</span>` +
       `<span class="f">${esc(t("g.n.new.sub", { f1: fields(nr[0]), f2: fields(nr[1]) }))}</span></div>`;
   }
   function picsCard() {
@@ -630,8 +665,76 @@
     </div>`;
   }
   function endCard() {
+    const b = (k, ic) => `<button class="rep-btn" data-rep="${k}"><span class="ic" aria-hidden="true">${ic}</span>${esc(t("rep." + k))}<small>${esc(t("rep." + k + ".s"))}</small></button>`;
     return `<div class="tour-end"><button class="g-btn" id="tour-explore">${esc(t("tour.end.tap"))}</button>` +
-      `<a class="g-btn ghost" href="index.html">${esc(t("g.learn"))}</a></div>`;
+      `<a class="g-btn ghost" href="index.html">${esc(t("g.learn"))}</a>` +
+      `<h4>${esc(t("rep.title"))}</h4><div class="rep-grid">${b("pdf", "📄")}${b("csv", "📊")}${b("png", "🖼️")}${b("share", "🔗")}</div>` +
+      `<p class="rep-status" id="rep-status" aria-live="polite"></p><div class="share-menu" id="share-menu" hidden></div></div>`;
+  }
+
+  /* ---- report: PDF (printable page), CSV, map snapshot, share */
+  const RT = window.ReportTools;
+  const repStatus = (k, v) => { const el = $("#rep-status"); if (el) el.textContent = k ? t(k, v) : ""; };
+  const fileStem = () => `upper-assam-flood-2026-${state.date}`;
+  // PNG of the current map view with a title band, legend and credit; read inside the render event,
+  // while the WebGL drawing buffer still holds the frame
+  function snapshot() {
+    return new Promise((res, rej) => {
+      map.once("render", () => {
+        try {
+          const src = map.getCanvas(), W = src.width, H = src.height, k = W / (src.clientWidth || W);
+          const c = document.createElement("canvas"); c.width = W; c.height = H;
+          const g = c.getContext("2d"), f = (w, s) => `${w} ${Math.round(s * k)}px system-ui, "Segoe UI", "Nirmala UI", sans-serif`;
+          g.drawImage(src, 0, 0);
+          const band = g.createLinearGradient(0, 0, 0, 96 * k);
+          band.addColorStop(0, "rgba(255,255,255,.95)"); band.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = band; g.fillRect(0, 0, W, 96 * k);
+          g.fillStyle = "#111827"; g.font = f(700, 26); g.fillText(t("g.title"), 20 * k, 38 * k);
+          g.fillStyle = "#4b5563"; g.font = f(400, 15);
+          g.fillText(`${t("phase." + state.date)} · ${fmtDate(M.dates[state.date])} · ${t("g.sub")}`, 20 * k, 62 * k);
+          const rows = [];
+          if (state.water) rows.push(["#2a78d6", t("legend.water")]);
+          if (state.classes) rows.push(["#2a78d6", t("cls.permanent")], ["#1baf7a", t("cls.flooded_receded")], ["#eb6834", t("cls.flooded_persisting")]);
+          if (rows.length) {
+            g.font = f(400, 13);
+            const bw = Math.max(...rows.map(r => g.measureText(r[1]).width)) + 44 * k, bh = (rows.length * 20 + 16) * k, x = 16 * k, y = H - bh - 16 * k;
+            g.fillStyle = "rgba(255,255,255,.92)"; g.fillRect(x, y, bw, bh);
+            rows.forEach(([col, txt], i) => {
+              g.fillStyle = col; g.fillRect(x + 12 * k, y + (12 + i * 20) * k, 12 * k, 12 * k);
+              g.fillStyle = "#111827"; g.fillText(txt, x + 32 * k, y + (22 + i * 20) * k);
+            });
+          }
+          g.font = f(400, 11); g.fillStyle = "rgba(17,24,39,.75)"; g.textAlign = "right";
+          g.fillText("NASA–ISRO NISAR (provisional) · Imagery © Esri", W - 12 * k, H - 10 * k);
+          c.toBlob(b => (b ? res(b) : rej(new Error("toBlob failed"))), "image/png");
+        } catch (e) { rej(e); }
+      });
+      map.triggerRepaint();
+    });
+  }
+  async function report(kind) {
+    repStatus("");
+    const shareText = t("r.share.text", { lo: nf(range(newly)[0]), hi: nf(range(newly)[1]) });
+    if (kind === "pdf") {
+      const w = window.open(`report.html?print=1&lang=${lang}`, "_blank");
+      repStatus(w ? "rep.opened" : "rep.blocked");
+    } else if (kind === "csv") {
+      const name = `upper-assam-flood-2026-${lang}.csv`;
+      RT.download(name, RT.csv(D)); repStatus("rep.saved", { file: name });
+    } else if (kind === "png") {
+      try { const name = fileStem() + ".png"; RT.download(name, await snapshot()); repStatus("rep.saved", { file: name }); }
+      catch (e) { tlog("snapshot failed", e.message); repStatus("rep.nosnap"); }
+    } else if (kind === "share") {
+      const url = RT.shareUrl();
+      let files;
+      try { files = [new File([await snapshot()], fileStem() + ".png", { type: "image/png" })]; } catch (e) { files = undefined; }
+      if (await RT.nativeShare({ title: t("r.title"), text: shareText, url, files })) return;
+      const L = RT.shareLinks(shareText, url), m = $("#share-menu");
+      m.innerHTML = `<button type="button" id="sh-copy">${esc(t("sh.copy"))}</button><a href="${L.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` +
+        `<a href="${L.email}">${esc(t("sh.email"))}</a><a href="${L.x}" target="_blank" rel="noopener">X</a>`;
+      m.hidden = false;
+      $("#sh-copy").addEventListener("click", async () => { const ok = await RT.copy(url ? `${shareText} ${url}` : shareText); if (ok) repStatus("rep.copied"); });
+    }
   }
 
   /* ---- subtitles: chunks of at most two lines, advanced with the narration */
@@ -697,6 +800,8 @@
     const html = { rain: rainCard, big: bigCard, pics: picsCard, end: endCard }[s.card]?.() || "";
     cardEl.innerHTML = html; cardEl.hidden = !html;
     const ex = $("#tour-explore"); if (ex) ex.addEventListener("click", endTour);
+    $$("[data-rep]", cardEl).forEach(b => b.addEventListener("click", () => report(b.dataset.rep)));
+    countUp(cardEl);
     $("#tour-back").textContent = t("tour.back"); $("#tour-back").disabled = tour.i === 0;
     $("#tour-next").textContent = t(last ? "tour.finish" : "tour.next");
     $("#tour-play").textContent = t(tour.paused ? "tour.resume" : "tour.pause");
@@ -873,12 +978,27 @@
     applyLayers(800);
     setTerrainOn(false);
     setTimeout(() => { if (screen === "globe") dLabels.forEach(m => m.remove()); }, 800);   // the Assam pin stays on the globe
-    const target = { center: [PIN_AT[0], 20], zoom: globeZoom(), pitch: 0, bearing: 0, padding: { top: 0, right: 0, bottom: 0, left: 0 } };
+    const target = Object.assign({}, globeView(), { center: [PIN_AT[0] - 12, GLOBE_LAT] });
     if (reduce) { map.jumpTo(target); return; }
+    lockMap(true);
     map.flyTo(Object.assign({ duration: 4500, curve: 1.4, essential: true }, target));
-    map.once("moveend", () => spin(true));
+    map.once("moveend", () => { lockMap(false); if (map.getZoom() > 4) map.jumpTo(target); spin(true); });
     $("#fly").focus();
   });
+
+  // small API for the chat helper (js/chat.js)
+  window.GlobeAPI = {
+    startTour: () => startTour(),
+    showDate: d => {
+      if (screen === "tour") endTour();
+      if (screen === "globe" || screen === "flying") flyIn(true);
+      if (!panel.hidden) closePanel(false);
+      if (screen !== "explore") enterExplore();
+      Object.assign(state, { date: d, radar: true, water: true, classes: true, districts: true });
+      renderLayerChecks(); applyLayers(800); dateButtons($("#ex-dates"));
+      const c = assamCamera(); if (reduce) map.jumpTo(c); else map.flyTo(Object.assign({ duration: 2500, essential: true }, c));
+    },
+  };
 
   /* ---------------------------------------------------------------- start */
   applyLang();
@@ -912,6 +1032,7 @@
       }
       return;
     }
+    map.jumpTo(globeView());
     spin(true);
     if (!Q.has("noauto")) startAuto();
   }
