@@ -54,6 +54,9 @@ ol.prose li, ul.prose li { margin-bottom: 0.4em; }
 .topbar { position: sticky; top: 0; z-index: 1500; background: rgba(11, 20, 38, 0.92); backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
 .topbar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; }
 .brand { font-weight: 600; font-size: 0.98rem; }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+.top-actions .btn { display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 6px 12px; }
+@media (max-width: 480px) { .brand { font-size: 0.85rem; } .top-actions .btn { padding: 6px 8px; } }
 .banner { background: #4a3a10; color: #ffe7a3; padding: 10px 16px; text-align: center; font-size: 0.92rem; }
 
 /* buttons: every control is at least 44px tall */

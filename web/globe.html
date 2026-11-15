@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Where the water went</title>
+<meta name="description" content="The July 2026 flood in Upper Assam, seen by NASA–ISRO NISAR radar, on an interactive 3D globe.">
+<meta name="theme-color" content="#050a16">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23256abf'/%3E%3Cpath d='M4 20c4-4 8 4 12 0s8 4 12 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
+<link rel="stylesheet" href="css/globe.css">
+</head>
+<body class="screen-globe">
+
+<div id="map" aria-label="3D map"></div>
+
+<!-- header: title (left), language + learn more (right) -->
+<header class="g-head">
+  <div class="g-titles">
+    <h1 data-i18n="g.title"></h1>
+    <p data-i18n="g.sub"></p>
+  </div>
+  <div class="g-right">
+    <a class="g-btn ghost small" href="index.html" data-i18n="g.learn"></a>
+    <div class="g-lang" role="group" data-i18n-aria="lang.label">
+      <button data-lang="en" aria-pressed="true">EN</button>
+      <button data-lang="hi" aria-pressed="false" lang="hi">हिन्दी</button>
+    </div>
+  </div>
+</header>
+
+<!-- screen 1 -->
+<div class="g-start" id="start">
+  <button class="g-btn big" id="fly" data-i18n="g.fly"></button>
+  <p class="g-auto" id="auto" aria-live="polite"></p>
+</div>
+
+<!-- screen 2 -->
+<p class="g-hint" id="hint" data-i18n="g.hint" hidden></p>
+
+<!-- explore mode -->
+<button class="g-btn ghost back" id="back" data-i18n="g.back" hidden></button>
+<button class="g-btn ghost ex-toggle" id="ex-toggle" aria-expanded="false" aria-controls="explore" data-i18n="g.ex.toggle" hidden></button>
+<section class="g-box explore" id="explore" aria-labelledby="ex-title" hidden>
+  <h2 id="ex-title" data-i18n="g.ex.title"></h2>
+  <div class="g-dates" id="ex-dates" role="group"></div>
+  <div class="g-checks" id="ex-layers"></div>
+  <label class="g-range"><span data-i18n="g.opacity"></span>
+    <input type="range" id="ex-opacity" min="0.2" max="1" step="0.05" value="0.85"></label>
+  <p class="g-small" data-i18n="g.tapany"></p>
+</section>
+
+<div class="g-box legend" id="legend" data-i18n-aria="g.legend" hidden>
+  <span class="lg"><span class="sw water"></span><span data-i18n="legend.water"></span></span>
+  <span class="lg"><span class="sw flooded_receded"></span><span data-i18n="cls.flooded_receded"></span></span>
+  <span class="lg"><span class="sw flooded_persisting"></span><span data-i18n="cls.flooded_persisting"></span></span>
+  <span class="lg"><span class="sw flooded_vegetation"></span><span data-i18n="cls.flooded_vegetation"></span></span>
+  <span class="lg"><span class="ramp"></span><span data-i18n="legend.radar"></span></span>
+</div>
+
+<!-- screen 3: panel (side panel on desktop, bottom sheet on mobile) -->
+<aside class="g-panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="panel-title" hidden>
+  <div class="p-head">
+    <h2 id="panel-title" tabindex="-1" data-i18n="g.panel"></h2>
+    <button class="p-close" id="close" data-i18n-aria="g.close">×</button>
+  </div>
+  <div class="p-tabs" role="tablist">
+    <button role="tab" id="t-story" aria-controls="s-story" aria-selected="true" data-i18n="g.tab.story"></button>
+    <button role="tab" id="t-clouds" aria-controls="s-clouds" aria-selected="false" tabindex="-1" data-i18n="g.tab.clouds"></button>
+    <button role="tab" id="t-numbers" aria-controls="s-numbers" aria-selected="false" tabindex="-1" data-i18n="g.tab.numbers"></button>
+  </div>
+  <div class="p-body">
+    <section role="tabpanel" id="s-story" aria-labelledby="t-story">
+      <div class="g-dates" id="p-dates" role="group"></div>
+      <button class="g-btn" id="play" aria-pressed="false"></button>
+      <p class="p-date" id="p-date" aria-live="polite"></p>
+      <p class="p-text" id="p-text"></p>
+      <p class="g-small" data-i18n="g.onmap"></p>
+    </section>
+    <section role="tabpanel" id="s-clouds" aria-labelledby="t-clouds" hidden>
+      <p id="clouds-p"></p>
+      <div class="swipe" id="swipe">
+        <img class="swipe-base" src="data/backscatter_peak.png" alt="">
+        <img class="swipe-top" id="swipe-opt" src="data/optical_peak.jpg" alt="">
+        <span class="swipe-tag l" data-i18n="clouds.left"></span>
+        <span class="swipe-tag r" data-i18n="clouds.right"></span>
+        <div class="swipe-line" aria-hidden="true"><span class="swipe-knob">◀ ▶</span></div>
+        <input type="range" id="swipe-range" min="0" max="100" value="50" step="0.5" data-i18n-aria="clouds.aria">
+      </div>
+      <p class="g-small" id="clouds-cap"></p>
+    </section>
+    <section role="tabpanel" id="s-numbers" aria-labelledby="t-numbers" hidden>
+      <div class="stats" id="stats"></div>
+      <p class="g-small" data-i18n="g.n.range"></p>
+    </section>
+  </div>
+  <div class="p-foot">
+    <button class="g-btn ghost" id="watch" data-i18n="g.watch"></button>
+    <button class="g-btn" id="to-explore" data-i18n="g.explore"></button>
+    <p class="g-small soon" id="soon" aria-live="polite"></p>
+  </div>
+</aside>
+
+<div class="g-loading" id="loading" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span data-i18n="g.loading"></span></div>
+<div class="g-fatal" id="fatal" hidden></div>
+
+<script src="vendor/maplibre/maplibre-gl.js"></script>
+<script>window.maplibregl || document.write('<script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js"><\/script><link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css">')</script>
+<script src="data/site_data.js"></script>
+<script src="data/status_grid.js"></script>
+<script src="data/globe_layers.js"></script>
+<script src="data/db_grids.js"></script>
+<script src="data/optical.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/i18n-globe.js"></script>
+<script src="js/globe.js"></script>
+</body>
+</html>

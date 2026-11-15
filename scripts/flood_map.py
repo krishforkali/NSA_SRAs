@@ -408,6 +408,15 @@ def export_web(web, a, paths, dates, db, water, classes, valid, inside, ref_tr, 
     (web / "site_data.js").write_text("window.FLOOD_DATA = " + text + ";\n", encoding="utf-8")
     print(f"Website data written to {web}", flush=True)
 
+    # packed overlays for globe.html (works from file://); script lives next to this one
+    import importlib.util
+    builder = Path(__file__).with_name("build_globe_assets.py")
+    if builder.exists():
+        spec = importlib.util.spec_from_file_location("build_globe_assets", builder)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        mod.build(web)
+
 
 # --------------------------------------------------------------------------------- main
 def main():

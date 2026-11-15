@@ -1,6 +1,16 @@
 # Upper Assam flood website
 
-Open `index.html` in a browser (double-click). No server needed.
+Main experience: **`globe.html`** (3D globe → fly to Assam → story panel → explore).
+The longer scrolling page is `index.html` ("Learn more").
+
+Open either file in a browser (double-click). No server needed.
+Globe test links: `globe.html?noauto` (no auto-start), `?view=assam`, `?panel=story|clouds|numbers`,
+`?explore=1`, `?at=26.94,94.58`, `?lang=hi`, `?debug=1` (logs camera moves to the console).
+
+`globe.html` uses MapLibre GL JS 5.24.1 (`vendor/maplibre/`). Version 6 ships only as ES modules,
+which browsers block for pages opened from disk, so it would break double-click opening.
+Its map overlays come from `data/globe_layers.js` (WebP data URLs), rebuilt by
+`scripts/build_globe_assets.py`; `flood_map.py --web` runs that automatically.
 Background map tiles need an internet connection; everything else is local.
 
 Handy links: `index.html?lang=hi` (Hindi), `?mode=explore`, `?step=4` (story step),
