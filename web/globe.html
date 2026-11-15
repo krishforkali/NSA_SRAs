@@ -31,7 +31,10 @@
 
 <!-- screen 1 -->
 <div class="g-start" id="start">
-  <button class="g-btn big" id="fly" data-i18n="g.fly"></button>
+  <div class="g-start-btns">
+    <button class="g-btn big" id="fly" data-i18n="g.fly"></button>
+    <button class="g-btn ghost big" id="watch-globe" data-i18n="g.watch"></button>
+  </div>
   <p class="g-auto" id="auto" aria-live="polite"></p>
 </div>
 
@@ -50,12 +53,14 @@
   <p class="g-small" data-i18n="g.tapany"></p>
 </section>
 
+<!-- legend: compact; rows appear only for layers that are on the map -->
 <div class="g-box legend" id="legend" data-i18n-aria="g.legend" hidden>
-  <span class="lg"><span class="sw water"></span><span data-i18n="legend.water"></span></span>
-  <span class="lg"><span class="sw flooded_receded"></span><span data-i18n="cls.flooded_receded"></span></span>
-  <span class="lg"><span class="sw flooded_persisting"></span><span data-i18n="cls.flooded_persisting"></span></span>
-  <span class="lg"><span class="sw flooded_vegetation"></span><span data-i18n="cls.flooded_vegetation"></span></span>
-  <span class="lg"><span class="ramp"></span><span data-i18n="legend.radar"></span></span>
+  <span class="lg" data-k="water"><span class="sw water"></span><span data-i18n="legend.water"></span></span>
+  <span class="lg" data-k="classes"><span class="sw permanent"></span><span data-i18n="cls.permanent"></span></span>
+  <span class="lg" data-k="classes"><span class="sw flooded_receded"></span><span data-i18n="cls.flooded_receded"></span></span>
+  <span class="lg" data-k="classes"><span class="sw flooded_persisting"></span><span data-i18n="cls.flooded_persisting"></span></span>
+  <span class="lg" data-k="classes"><span class="sw flooded_vegetation"></span><span data-i18n="cls.flooded_vegetation"></span></span>
+  <span class="lg" data-k="radar"><span class="ramp"></span><span data-i18n="g.legend.radar"></span></span>
 </div>
 
 <!-- screen 3: panel (side panel on desktop, bottom sheet on mobile) -->
@@ -83,6 +88,7 @@
         <img class="swipe-base" src="data/backscatter_peak.png" alt="">
         <img class="swipe-top" id="swipe-opt" src="data/optical_peak.jpg" alt="">
         <span class="swipe-tag l" data-i18n="clouds.left"></span>
+        <span class="swipe-note" data-i18n="g.clouds.only"></span>
         <span class="swipe-tag r" data-i18n="clouds.right"></span>
         <div class="swipe-line" aria-hidden="true"><span class="swipe-knob">◀ ▶</span></div>
         <input type="range" id="swipe-range" min="0" max="100" value="50" step="0.5" data-i18n-aria="clouds.aria">
@@ -101,6 +107,31 @@
   </div>
 </aside>
 
+<!-- guided tour: subtitles + controls; each part waits for its narration clip to finish -->
+<!-- tour extras (rain chart, big number, 3-picture card, end card): floating card on the left -->
+<aside class="tour-card" id="tour-card" aria-live="polite" hidden></aside>
+
+<!-- tour: slim subtitle bar (max 2 lines) + one small control row; the middle of the map stays clear -->
+<section class="tour" id="tour" data-i18n-aria="tour.label" hidden>
+  <p class="tour-msg" id="tour-msg" aria-live="assertive"></p>
+  <div class="tour-sub">
+    <div class="tour-prog" id="tour-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100"><span id="tour-fill"></span></div>
+    <p class="tour-text" id="tour-text" aria-live="polite"></p>
+  </div>
+  <div class="tour-ctrl">
+    <span class="tour-count" id="tour-count"></span>
+    <a class="tour-src" id="tour-src" href="index.html#news-sources" target="_blank" rel="noopener" data-i18n="tour.src" hidden></a>
+    <span class="tour-gap"></span>
+    <button class="t-btn" id="tour-back"></button>
+    <button class="t-btn primary" id="tour-play"></button>
+    <button class="t-btn" id="tour-next"></button>
+    <button class="t-btn" id="tour-replay"></button>
+    <button class="t-btn" id="tour-lang"></button>
+    <button class="t-btn icon" id="tour-mute" aria-pressed="false"></button>
+    <button class="t-btn icon" id="tour-close" data-i18n-aria="tour.close">×</button>
+  </div>
+</section>
+
 <div class="g-loading" id="loading" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span data-i18n="g.loading"></span></div>
 <div class="g-fatal" id="fatal" hidden></div>
 
@@ -111,6 +142,7 @@
 <script src="data/globe_layers.js"></script>
 <script src="data/db_grids.js"></script>
 <script src="data/optical.js"></script>
+<script src="data/rainfall.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/i18n-globe.js"></script>
 <script src="js/globe.js"></script>

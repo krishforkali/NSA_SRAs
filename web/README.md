@@ -5,7 +5,21 @@ The longer scrolling page is `index.html` ("Learn more").
 
 Open either file in a browser (double-click). No server needed.
 Globe test links: `globe.html?noauto` (no auto-start), `?view=assam`, `?panel=story|clouds|numbers`,
-`?explore=1`, `?at=26.94,94.58`, `?lang=hi`, `?debug=1` (logs camera moves to the console).
+`?explore=1`, `?at=26.94,94.58`, `?lang=hi`, `?tour=1` … `?tour=6` (open the guided tour at a stop;
+browsers hold back its sound until you press Play), `?debug=1` (logs camera and tour events to the console;
+with `&missingclip=N` it pretends clip N is missing, to test the fallback).
+
+## Guided tour
+
+"▶ Watch the story" (globe screen or the story panel) starts a six-stop narrated tour.
+Each stop moves the camera, sets the layers and plays `data/narration/<en|hi>_<n>.mp3`.
+The next stop starts only when the clip has ended, the camera has arrived and at least 6 s have
+passed. If a clip is missing (or hasn't started after 10 s), the browser's own voice reads the
+subtitle in the same language; with no suitable voice, the stop lasts 8 s.
+Controls: Play/Pause (Space), Back/Next (← →), Replay, language switch (restarts the stop),
+sound on/off, close (Esc), which goes to explore mode.
+Subtitles are the `tour.1`–`tour.6` keys in `js/i18n-globe.js`; the clips are made from the same
+text by `scripts/make_narration.py`. Keep the two in step when you change a line.
 
 `globe.html` uses MapLibre GL JS 5.24.1 (`vendor/maplibre/`). Version 6 ships only as ES modules,
 which browsers block for pages opened from disk, so it would break double-click opening.

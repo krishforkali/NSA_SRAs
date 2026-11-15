@@ -19,8 +19,21 @@ PHASES = ("before", "peak", "after")
 RADAR_MAX_PX = 2000
 
 
-def data_url(path, lossless, max_px=None):
+def clip_to_districts(im, feather_px=4):
+    """Radar PNGs are opaque inside the districts (alpha 255) and dimmed outside (alpha 90).
+    For the globe, keep only the inside, with a soft (blurred) edge instead of a grey rectangle."""
+    from PIL import ImageFilter
+    a = im.getchannel("A")
+    inside = a.point(lambda v: 255 if v >= 200 else 0)
+    soft = inside.filter(ImageFilter.GaussianBlur(feather_px))
+    im.putalpha(soft)
+    return im
+
+
+def data_url(path, lossless, max_px=None, clip=False):
     im = Image.open(path).convert("RGBA")
+    if clip:
+        im = clip_to_districts(im)
     if max_px and max(im.size) > max_px:
         s = max_px / max(im.size)
         im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
@@ -37,7 +50,7 @@ def build(web):
     meta = json.loads((web / "data.json").read_text(encoding="utf-8"))["meta"]
     layers, sizes = {}, {}
     for p in PHASES:
-        layers[f"radar_{p}"], sizes[f"radar_{p}"] = data_url(web / f"backscatter_{p}.png", False, RADAR_MAX_PX)
+        layers[f"radar_{p}"], sizes[f"radar_{p}"] = data_url(web / f"backscatter_{p}.png", False, RADAR_MAX_PX, clip=True)
         layers[f"water_{p}"], sizes[f"water_{p}"] = data_url(web / f"water_{p}.png", True)
     layers["classes"], sizes["classes"] = data_url(web / "flood_classes.png", True)
     if (web / "flood_classes_careful.png").exists():
