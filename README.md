@@ -28,4 +28,11 @@ provisional release and the map has not been checked on the ground.
 ## Sources
 
 NISAR L2 GCOV (ASF DAAC) · NASA Worldview/GIBS (MODIS) · NASA POWER (rainfall) ·
-geoBoundaries · GeoNames (CC BY 4.0) · Esri basemaps · Leaflet
+geoBoundaries · GeoNames (CC BY 4.0) · Esri basemaps · Leaflet · MapLibre GL JS
+
+News reports quoted in the narration:
+[BBC News via The Star, 28 Jul 2026](https://www.the-star.co.ke/news/world/2026-07-28-indias-assam-faces-worst-floods-in-years) ·
+[The Wire](https://thewire.in/environment/assams-floods-are-worsening-and-extreme-rainfall-is-only-part-of-the-reason) ·
+[Outlook India, 28 Jul 2026](https://www.outlookindia.com/national/outlook-explains-why-assam-floods-every-year-despite-decades-of-flood-control-projects)
+
+Narration voices: Microsoft Edge neural text-to-speech (en-IN-NeerjaNeural, hi-IN-SwaraNeural), made with `scripts/make_narration.py`.
